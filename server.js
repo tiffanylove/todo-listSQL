@@ -52,6 +52,51 @@ app.post('/addTask', function(req, res){
 connection.query("INSERT into todolist (tasks) values ($1)", [req.body.newTask]);
 res.send(taskObject);
 done();
-
   }); //end pool.connect
 }); //end app.post
+
+app.get('/getTasks', function(req, res){
+  console.log('getTasks route hit');
+  //empty array
+  var allTasks = [];
+  //connect to DB
+  pool.connect(function(err, connection, done){
+    if(err){
+      console.log(err);
+      //respond
+      res.send(400);
+    } else{
+      console.log('connected!');
+      //Tells array to push row into empty array
+      var resultSet = connection.query("SELECT * from todolist");
+      resultSet.on('row', function(row){
+        console.log('running?', row);
+        allTasks.push(row);
+      }); //end row
+      //on 'end', call the new array
+      resultSet.on('end', function(){
+        console.log('allTasks -->', allTasks);
+        res.send(allTasks);
+
+        done();
+      });// on end
+
+    }// end else
+  }); //end pool.connect
+}); //end app.get
+
+app.delete('/deleteTask', function(req, res){
+  console.log('add delete route');
+    pool.connect(function(err, connection, done){
+      if(err){
+        console.log(err);
+        res.send(400);
+      }else{
+        console.log('connected');
+
+      connection.query("DELETE FROM todolist WHERE id = $1", [req.body.listId]);
+      done();
+      res.send(200);
+        }//end else
+    }); //end pool.connect
+  }); //end app.post
