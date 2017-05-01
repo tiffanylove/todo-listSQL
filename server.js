@@ -96,8 +96,9 @@ app.delete('/deleteTask', function(req, res){
         console.log('connected');
 
         connection.query( "DELETE FROM todolist WHERE id=$1", [req.body.id]);
+        done();
       res.send(200);
-      done();
+
         }//end else
     }); //end pool.connect
   }); //end app.post
@@ -115,8 +116,8 @@ app.delete('/deleteTask', function(req, res){
 
       connection.query( "UPDATE todolist SET activetask=false WHERE id=$1", [req.body.id] );
 
-      res.send(200);
       done();
+      res.send(200);
       }  //end else
     }); // end pool.connect
   });
