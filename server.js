@@ -16,8 +16,8 @@ var config = {
   max: 10
 };
 //uses
-app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true}));
+app.use(express.static('public'));
 
 // create new pool using config
 var pool = new pg.Pool(config);
@@ -32,6 +32,7 @@ app.get('/', function(req, res){
   console.log('base url hit');
   res.sendFile(path.resolve('public/views/index.html'));
 });
+
 
 app.post('/addTask', function(req, res){
   console.log('addTask route hit');
@@ -49,7 +50,7 @@ app.post('/addTask', function(req, res){
       console.log('connected');
     } //end else
 
-connection.query("INSERT into todolist (tasks) values ($1)", [req.body.newTask]);
+connection.query("INSERT into todolist (tasks, activetask) values ($1, $2)", [req.body.newTask, true]);
 res.send(taskObject);
 done();
   }); //end pool.connect
@@ -94,9 +95,28 @@ app.delete('/deleteTask', function(req, res){
       }else{
         console.log('connected');
 
-      connection.query("DELETE FROM todolist WHERE id = $1", [req.body.listId]);
-      done();
+        connection.query( "DELETE FROM todolist WHERE id=$1", [req.body.id]);
       res.send(200);
+      done();
         }//end else
     }); //end pool.connect
   }); //end app.post
+
+
+  app.post( '/completeTask', function( req, res ){
+  console.log( 'complete:', req.body );
+  pool.connect(function(err, connection, done){
+    if(err){
+      console.log(err);
+      //response
+      res.send(400);
+    } else{
+      console.log('connected');
+
+      connection.query( "UPDATE todolist SET activetask=false WHERE id=$1", [req.body.id] );
+
+      res.send(200);
+      done();
+      }  //end else
+    }); // end pool.connect
+  });

@@ -6,10 +6,9 @@ function onReady(){
   console.log('ready');
 
 $('#submitTask').on('click', addTask);
-
-$(document).on('click','.deleteButton', deleteTask);
-$(document).on('click','.completeButton', completeTask);
-
+getTasks();
+$(document).on('click', '.deleteButton', deleteTask);
+$(document).on('click', '.completeButton', completeTask);
 
 
 function addTask(){
@@ -24,56 +23,55 @@ $.ajax({
   url: '/addTask',
   type: 'POST',
   data: taskObject,
-  success:function(data){
-    console.log('added task:', data);
+  success:function(response){
+    console.log('added task:', response);
     $('form').trigger('reset');
     getTasks();
   }//end success
 });// end of ajax post
 }// end addTask function
 
+
 function getTasks(){
-  console.log('getTasks');
+  console.log( 'in getTasks' );
+  $.ajax({
+    type: 'GET',
+    url: '/getTasks',
+    success: function( response ){
+      console.log( 'back with:', response );
+      // empty the container div
+      $('#taskContainer').empty();
+      // loop through the results
+      for (var i = 0; i < response.length; i++) {
+        // display on the DOM
 
-//ajax call to get tasks and display on DOM
-$.ajax({
-  url: '/getTasks',
-  type: 'GET',
-  success: function(response){
-    console.log('get some tasks:', response);
-
-    //after we get task, display to DOM
-    for (var i = 0; i < response.length; i++) {
-    $('#taskContainer').append('<p class = "item">' + response[i].tasks + '' + '<button class = "deleteButton">Delete</button>' + '' + '<button class = "completeButton">Complete</button>' + '</p>');
-    }
-
-  }
-});//end ajax get
-
-}// end getTasks function
-
-
-function completeTask(){
-
-}//end completeTask function
+        if( response[i].complete ){
+          $('#taskContainer').append('<p>' + response[i].tasks + '</p>' );
+        } else{
+          $('#taskContainer').append('<p><b>' + response[i].tasks + '<b><button class="completeButton" data-id=' + response[i].id + '>Complete</button><button class="deleteButton" data-id=' + response[i].id + '>Delete</button></p>' );
+        } // end else
+      } // end for
+    } // end success
+  }); // end ajax
+} //end getTasks
 
 function deleteTask(){
 console.log('deleting');
 if(confirm('Would you like to delete this task?')=== true){
-  var id = $(this).parent().data('id');
+  var id = $(this).data('id');
   console.log(id);
-  var itemSending = {
+  var idSending = {
     todolistId: id,
   };
-  console.log(itemSending);
+  console.log(idSending);
 
   $.ajax({
     url: '/deleteTask',
     type: 'DELETE',
-    data: itemSending,
+    data: idSending,
     success: function(response){
       console.log('delete from server:', response);
-
+      getTasks();
     }//end success
   });//end ajax
 
@@ -84,17 +82,25 @@ console.log('Item will not be deleted');
 }//end deleteTask function
 
 
-// function emptyInput(){
-// $('#tasks').val('');
-// }
+function completeTask(){
+    var id = $( this ).data( 'id' );
+    console.log( id );
+    // send this id
+    var idSending = {
+      todolistId: id,
+    }; //end objectToSend
+    $.ajax({
+      type: 'POST',
+      data: idSending,
+      url: '/completeTask',
+      success: function( response ){
+        console.log( 'completed');
+        getTasks();
+      } // end success
+    }); // end ajax
 
-function willDelete(){
-  if(confirm('Would you like to delete this task?')=== true){
-    deleteTask();
-  }else{
-    console.log('Will not delete');
-  }
-}
+}//end completeTask function
+
 
 
 
