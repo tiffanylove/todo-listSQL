@@ -51,8 +51,9 @@ app.post('/addTask', function(req, res){
     } //end else
 
 connection.query("INSERT into todolist (tasks, activetask) values ($1, $2)", [req.body.newTask, true]);
-res.send(taskObject);
+
 done();
+res.send(taskObject);
   }); //end pool.connect
 }); //end app.post
 
@@ -77,9 +78,9 @@ app.get('/getTasks', function(req, res){
       //on 'end', call the new array
       resultSet.on('end', function(){
         console.log('allTasks -->', allTasks);
-        res.send(allTasks);
 
         done();
+        res.send(allTasks);
       });// on end
 
     }// end else
